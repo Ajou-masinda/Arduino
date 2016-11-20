@@ -3,8 +3,8 @@
 int mq2_sensorValue; // GAS
 int mq135_sensorValue; // CO2, CO
 int buzzer_pin = 2;
-int mq135_pin =  A0;
-int mq2_pin =   A3;
+int mq135_pin = 0; // A0
+int mq2_pin = 3; // A3
 int melody = NOTE_G4;
 
 void setup()
