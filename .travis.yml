@@ -6,4 +6,5 @@ install:
     - python -c "$(curl -fsSL https://raw.githubusercontent.com/platformio/platformio/master/scripts/get-platformio.py)"
 
 script:
-	- platformio ci Deudnunda --board=esp01
+    - platformio ci Deudnunda --board=esp01
+    - platformio ci GGopnunda --board=esp01
