@@ -7,4 +7,3 @@ install:
 
 script:
 	- platformio ci Deudnunda --board=esp01
-    - platformio ci GGopnunda --board=esp01
