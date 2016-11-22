@@ -23,7 +23,7 @@ void setup() {
   WiFi.macAddress(MAC_array);
 
   for (int i = 0; i < 6; ++i) {
-    MAC_str += String(mac[i], 16);
+    MAC_str += String(MAC_array[i], 16);
     if (i < 5) MAC_str += ':';
   }
   
