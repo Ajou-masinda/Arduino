@@ -2,12 +2,11 @@
 
 #define SSID "NAM"
 #define PASS "dnwls222"
-#define DST_IP "192.168.0.197" //Deudnunda
+#define DST_IP "192.168.43.168" //Deudnunda
 #define DST_PORT 3030
 #define PIN 13 // GPIO13 --> D7
 
-uint8_t MAC_array[6];
-char MAC_char[18];
+String MAC_str = "";
 
 void setup() {
   Serial.begin(115200);
@@ -20,13 +19,15 @@ void setup() {
   Serial.print("Connecting to ");
   Serial.println(SSID);
 
+  unsigned char MAC_array[6];
   WiFi.macAddress(MAC_array);
-  for (int i = 0; i < sizeof(MAC_array); ++i){
-    sprintf(MAC_char,"%s%02x:",MAC_char,MAC_array[i]);
+
+  for (int i = 0; i < 6; ++i) {
+    MAC_str += String(mac[i], 16);
+    if (i < 5) MAC_str += ':';
   }
   
-  Serial.println(MAC_char);
-
+  Serial.println(MAC_str);
   WiFi.begin(SSID, PASS);
 
   while (WiFi.status() != WL_CONNECTED) {
@@ -62,7 +63,8 @@ void POST(void)
     Serial.println("connection failed");
     return;
   }
-  String pubString = "{\"MAC\": \"" + MAC_char + "\", \"REQ\": \"GET_COMMAND\"}";
+  String pubString = "{\"MAC\": \"" + MAC_str + "\",\"IP\": \"" + WiFi.localIP() + "\", \"REQ\": \"GET_COMMAND\"}";
+  //String pubString = "{\"REQ\": \"GET_COMMAND\"}";
   String pubStringLength = String(pubString.length(), DEC);
   
   // We now create a URI for the request
