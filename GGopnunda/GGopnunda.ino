@@ -4,8 +4,10 @@
 #define PASS "dnwls222"
 #define DST_IP "192.168.0.197" //Deudnunda
 #define DST_PORT 3030
-
 #define PIN 13 // GPIO13 --> D7
+
+uint8_t MAC_array[6];
+char MAC_char[18];
 
 void setup() {
   Serial.begin(115200);
@@ -18,6 +20,13 @@ void setup() {
   Serial.print("Connecting to ");
   Serial.println(SSID);
 
+  WiFi.macAddress(MAC_array);
+  for (int i = 0; i < sizeof(MAC_array); ++i){
+    sprintf(MAC_char,"%s%02x:",MAC_char,MAC_array[i]);
+  }
+  
+  Serial.println(MAC_char);
+
   WiFi.begin(SSID, PASS);
 
   while (WiFi.status() != WL_CONNECTED) {
@@ -29,8 +38,6 @@ void setup() {
   Serial.println("WiFi connected");
   Serial.println("IP address: ");
   Serial.println(WiFi.localIP()); // This is your NodeMCU IP address. Could be handy for other projects
-
-  //GET();  // If all you need to do is push data, you don't need this
 
   // Serial.println("ESP8266 in sleep mode");
   // Put NodeMCU in deep sleep. When it wakes up it will run setup() again,
@@ -55,7 +62,7 @@ void POST(void)
     Serial.println("connection failed");
     return;
   }
-  String pubString = "{\"REQ\": \"GET_COMMAND\"}";
+  String pubString = "{\"MAC\": \"" + MAC_char + "\", \"REQ\": \"GET_COMMAND\"}";
   String pubStringLength = String(pubString.length(), DEC);
   
   // We now create a URI for the request
