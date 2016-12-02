@@ -5,6 +5,7 @@
 #define DST_IP "192.168.0.197" //Deudnunda
 #define DST_PORT 3030
 #define PIN 13 // GPIO13 --> D7
+#define SERIAL "MXC55QAS2KSZ"
 
 String MAC_str = "";
 String AP_IP = "";
@@ -13,6 +14,8 @@ boolean REGISTER = false;
 void setup() {
   Serial.begin(115200);
   delay(100);
+
+  initVariant();
 
   pinMode(PIN, OUTPUT);
   // We start by connecting to a WiFi network
@@ -41,14 +44,22 @@ void setup() {
   Serial.println("WiFi connected");
   Serial.println("IP address: ");
   Serial.println(WiFi.localIP()); // This is your NodeMCU IP address. Could be handy for other projects
-
-  checkRegistred();
 }
 
 void loop()
 {
   delay(2000);  // You can get rid of this or decrease it
-  //POST();
+  if(!REGISTER) {
+    checkRegistred();
+    return;
+  }
+
+  String pubString = "{\"MAC\": \"" + MAC_str + "\",\"IP\": \"" + ipToString(WiFi.localIP()) + "\", \"REQ\": \"GET_COMMAND\", \"SERIAL\": \"" + SERIAL + "\"}";
+  String res = POST(pubString);
+  Serial.println(res);
+  if(res.length() > 0) {
+    //doCommand(res);
+  }
 }
 
 String POST(String pubString)
@@ -65,8 +76,6 @@ String POST(String pubString)
     return "CON_FAIL";
   }
 
-  //String pubString = "";
-  //pubString = "{\"MAC\": \"" + MAC_str + "\",\"IP\": \"" + WiFi.localIP() + "\", \"REQ\": \"GET_COMMAND\"}";
   String pubStringLength = String(pubString.length(), DEC);
   
   // We now create a URI for the request
@@ -107,27 +116,24 @@ String POST(String pubString)
 
 void checkRegistred() 
 {
-  String pubString = "{\"MAC\": \"" + MAC_str + "\",\"IP\": \"" + ipToString(WiFi.localIP()) + "\", \"REQ\": \"REGISTER\"}";
+  String pubString = "{\"MAC\": \"" + MAC_str + "\",\"IP\": \"" + ipToString(WiFi.localIP()) + "\", \"REQ\": \"REGISTER\", \"SERIAL\": \"" + SERIAL + "\"}";
   Serial.println(WiFi.gatewayIP());
   AP_IP = ipToString(WiFi.gatewayIP());
 
   String res = "";
-  while(res != "OK") {
-    res = POST(pubString);
-    Serial.println(res);
+  res = POST(pubString);
+  Serial.println(res);
 
-    if(res == "OK") {
-      REGISTER = true;
-      Serial.println("REGISTERED!!!");
-    }
+  if(res == "OK") {
+    REGISTER = true;
+    Serial.println("REGISTERED!!!");
   }
   return ;
 }
 
-void getCommand()
+void doCommand(String command)
 {
-  /*
-    if(line == "ON") {
+    if(command == "ON") {
       Serial.print("CMD : ON");
       digitalWrite(13, HIGH);
     }
@@ -135,7 +141,6 @@ void getCommand()
       Serial.print("CMD : OFF");
       digitalWrite(13, LOW);
     }
-    */
 }
 
 String ipToString(IPAddress ip){
