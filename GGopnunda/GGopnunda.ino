@@ -1,12 +1,14 @@
 #include <ESP8266WiFi.h>
 
-#define SSID "NAM"
-#define PASS "dnwls222"
-#define DST_IP "192.168.43.168" //Deudnunda
+#define SSID "DEUDNUNDA"
+#define PASS "1q2w3er4"
+#define DST_IP "192.168.0.197" //Deudnunda
 #define DST_PORT 3030
 #define PIN 13 // GPIO13 --> D7
 
 String MAC_str = "";
+String AP_IP = "";
+boolean REGISTER = false;
 
 void setup() {
   Serial.begin(115200);
@@ -40,31 +42,31 @@ void setup() {
   Serial.println("IP address: ");
   Serial.println(WiFi.localIP()); // This is your NodeMCU IP address. Could be handy for other projects
 
-  // Serial.println("ESP8266 in sleep mode");
-  // Put NodeMCU in deep sleep. When it wakes up it will run setup() again,
-  // connect to WiFi, then post and/or get data, then go back to sleep and repeat
+  checkRegistred();
 }
 
 void loop()
 {
-  POST();
+  delay(2000);  // You can get rid of this or decrease it
+  //POST();
 }
 
-void POST(void)
+String POST(String pubString)
 {
-  delay(2000);  // You can get rid of this or decrease it
-
   Serial.print("connecting to ");
-  Serial.println(DST_IP);
+  Serial.println(AP_IP);
 
+  char charBuf[16];
+  AP_IP.toCharArray(charBuf, 16);
   // Use WiFiClient class to create TCP connections
   WiFiClient client;
-  if (!client.connect(DST_IP, DST_PORT)) {
+  if (!client.connect(charBuf, DST_PORT)) {
     Serial.println("connection failed");
-    return;
+    return "CON_FAIL";
   }
-  String pubString = "{\"MAC\": \"" + MAC_str + "\",\"IP\": \"" + WiFi.localIP() + "\", \"REQ\": \"GET_COMMAND\"}";
-  //String pubString = "{\"REQ\": \"GET_COMMAND\"}";
+
+  //String pubString = "";
+  //pubString = "{\"MAC\": \"" + MAC_str + "\",\"IP\": \"" + WiFi.localIP() + "\", \"REQ\": \"GET_COMMAND\"}";
   String pubStringLength = String(pubString.length(), DEC);
   
   // We now create a URI for the request
@@ -79,12 +81,52 @@ void POST(void)
   client.print(pubString);
   client.println();
   delay(500); // Can be changed
-  
+
+  String res = "";
+  boolean start = false;
   // Read all the lines of the reply from server and print them to Serial
   while (client.available()) {
     String line = client.readStringUntil('\r');
     line.trim();
-    Serial.print(line);
+    Serial.println(line);
+    
+    if(line == "") {
+      start = true;
+      continue;
+    }
+    if(start) {
+      res = line;
+      return res;
+    }
+  }
+  Serial.println();
+  Serial.println("closing connection");
+
+  return res;
+}
+
+void checkRegistred() 
+{
+  String pubString = "{\"MAC\": \"" + MAC_str + "\",\"IP\": \"" + ipToString(WiFi.localIP()) + "\", \"REQ\": \"REGISTER\"}";
+  Serial.println(WiFi.gatewayIP());
+  AP_IP = ipToString(WiFi.gatewayIP());
+
+  String res = "";
+  while(res != "OK") {
+    res = POST(pubString);
+    Serial.println(res);
+
+    if(res == "OK") {
+      REGISTER = true;
+      Serial.println("REGISTERED!!!");
+    }
+  }
+  return ;
+}
+
+void getCommand()
+{
+  /*
     if(line == "ON") {
       Serial.print("CMD : ON");
       digitalWrite(13, HIGH);
@@ -93,7 +135,12 @@ void POST(void)
       Serial.print("CMD : OFF");
       digitalWrite(13, LOW);
     }
-  }
-  Serial.println();
-  Serial.println("closing connection");
+    */
+}
+
+String ipToString(IPAddress ip){
+  String s="";
+  for (int i=0; i<4; i++)
+    s += i  ? "." + String(ip[i]) : String(ip[i]);
+  return s;
 }
