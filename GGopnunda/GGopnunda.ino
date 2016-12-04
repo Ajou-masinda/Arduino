@@ -5,7 +5,7 @@
 #define DST_IP "192.168.0.197" //Deudnunda
 #define DST_PORT 3030
 #define PIN 13 // GPIO13 --> D7
-#define SERIAL "MXC55QAS2KSZ"
+#define SERIAL "KVN46EF2D4XC"
 
 String MAC_str = "";
 String AP_IP = "";
@@ -57,8 +57,8 @@ void loop()
   String pubString = "{\"MAC\": \"" + MAC_str + "\",\"IP\": \"" + ipToString(WiFi.localIP()) + "\", \"REQ\": \"GET_COMMAND\", \"SERIAL\": \"" + SERIAL + "\"}";
   String res = POST(pubString);
   Serial.println(res);
-  if(res.length() > 0) {
-    //doCommand(res);
+  if(res.length() > 0 ) {
+    doCommand(res);
   }
 }
 
@@ -122,7 +122,6 @@ void checkRegistred()
 
   String res = "";
   res = POST(pubString);
-  Serial.println(res);
 
   if(res == "OK") {
     REGISTER = true;
@@ -137,7 +136,7 @@ void doCommand(String command)
       Serial.print("CMD : ON");
       digitalWrite(13, HIGH);
     }
-    else {
+    else if(command == "OFF") {
       Serial.print("CMD : OFF");
       digitalWrite(13, LOW);
     }
